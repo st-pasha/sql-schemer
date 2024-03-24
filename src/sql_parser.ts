@@ -1,5 +1,5 @@
 type Token =
-  | { type: "COMMENT"; value: string; start: number }
+  | { type: "COMMENT"; value: string }
   | { type: "PUNCT"; value: string }
   | { type: "WORD"; value: string }
   | { type: "KEYWORD"; value: string }
@@ -159,24 +159,17 @@ const keywords = new Set([
 function tokenize(text: string): Array<Token> {
   let out: Array<Token> = [];
   let i = 0;
-  let lineStartPos = 0;
 
   while (i < text.length) {
     const ch0 = text[i];
     if (atNewline(text, i)) {
       i += newlineLength(text, i);
-      lineStartPos = i;
       continue;
     } else if (ch0 === "-" && text[i + 1] === "-") {
       const pos0 = i;
       while (i < text.length && !atNewline(text, i)) i++;
       i += newlineLength(text, i);
-      out.push({
-        type: "COMMENT",
-        value: text.slice(pos0, i),
-        start: pos0 - lineStartPos,
-      });
-      lineStartPos = i;
+      out.push({ type: "COMMENT", value: text.slice(pos0, i) });
     } else if (ch0 == "/" && text[i + 1] == "*") {
       const pos0 = i;
       while (i < text.length) {
@@ -186,11 +179,7 @@ function tokenize(text: string): Array<Token> {
         }
         i++;
       }
-      out.push({
-        type: "COMMENT",
-        value: text.slice(pos0, i),
-        start: pos0 - lineStartPos,
-      });
+      out.push({ type: "COMMENT", value: text.slice(pos0, i) });
     } else if (ch0 === "'" || ch0 == '"') {
       const pos0 = i;
       i++;
@@ -226,16 +215,16 @@ function tokenize(text: string): Array<Token> {
   return out;
 }
 
-function atNewline(text: string, i: number): boolean {
-  const ch0 = text[i];
-  return ch0 === "\n" || (ch0 === "\r" && text[i + 1] === "\n");
+function atNewline(text: string, pos: number): boolean {
+  const ch0 = text[pos];
+  return ch0 === "\n" || (ch0 === "\r" && text[pos + 1] === "\n");
 }
 
-function newlineLength(text: string, i: number): number {
-  const ch0 = text[i];
+function newlineLength(text: string, pos: number): number {
+  const ch0 = text[pos];
   if (ch0 === "\n") return 1;
-  if (ch0 === "\r" && text[i + 1] === "\n") return 2;
+  if (ch0 === "\r" && text[pos + 1] === "\n") return 2;
   return 0;
 }
 
-export { tokenize, Token };
+export { tokenize };

@@ -23,7 +23,7 @@ describe("tokenize", () => {
     test("Simple comment", () => {
       const tokens = tokenize(`    -- This is a comment`);
       expect(tokens).toEqual([
-        { type: "COMMENT", value: "-- This is a comment", start: 4 },
+        { type: "COMMENT", value: "-- This is a comment" },
       ]);
     });
 
@@ -35,9 +35,9 @@ describe("tokenize", () => {
         -- Line 4
       `);
       expect(tokens).toEqual([
-        { type: "COMMENT", value: "-- Line 1\n", start: 8 },
-        { type: "COMMENT", value: "-- Line 2\n", start: 8 },
-        { type: "COMMENT", value: "-- Line 4\n", start: 8 },
+        { type: "COMMENT", value: "-- Line 1\n" },
+        { type: "COMMENT", value: "-- Line 2\n" },
+        { type: "COMMENT", value: "-- Line 4\n" },
       ]);
     });
 
@@ -51,7 +51,6 @@ describe("tokenize", () => {
         {
           type: "COMMENT",
           value: "/* Start\n           Middle\n           End */",
-          start: 8,
         },
       ]);
     });
@@ -132,14 +131,13 @@ describe("tokenize", () => {
           value:
             "/* Internal identifier for the user.\n" +
             "             IDs of deleted users should not be reused. */",
-          start: 10,
         },
         { type: "WORD", value: "id" },
         { type: "WORD", value: "INT" },
         { type: "KEYWORD", value: "PRIMARY" },
         { type: "KEYWORD", value: "KEY" },
         { type: "PUNCT", value: "," },
-        { type: "COMMENT", value: "/* Username for login */", start: 10 },
+        { type: "COMMENT", value: "/* Username for login */" },
         { type: "WORD", value: "username" },
         { type: "WORD", value: "VARCHAR" },
         { type: "PUNCT", value: "(" },
@@ -151,7 +149,6 @@ describe("tokenize", () => {
         {
           type: "COMMENT",
           value: "/* Email used for password reminder flow */",
-          start: 10,
         },
         { type: "WORD", value: "email" },
         { type: "WORD", value: "TEXT" },
