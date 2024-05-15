@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { tokenize } from "../src/sql_parser";
+import { tokenize } from "../src/tokenize";
 
 describe("tokenize", () => {
   describe("Empty", () => {
