@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { tokenize } from "../src/tokenize";
+import { tokenize } from "../src/tokenize.ts";
 
 describe("tokenize", () => {
   describe("Empty", () => {
@@ -10,7 +10,9 @@ describe("tokenize", () => {
 
     test("Empty lines", () => {
       const tokens = tokenize("\n  \n \t \r\n ");
-      expect(tokens).toEqual([]);
+      expect(tokens).toEqual([
+        { type: "WHITESPACE", value: "\n  \n \t \r\n " },
+      ]);
     });
 
     test("Semicolon only", () => {
@@ -23,6 +25,7 @@ describe("tokenize", () => {
     test("Simple comment", () => {
       const tokens = tokenize(`    -- This is a comment`);
       expect(tokens).toEqual([
+        { type: "WHITESPACE", value: "    " },
         { type: "COMMENT", value: "-- This is a comment" },
       ]);
     });
@@ -35,9 +38,13 @@ describe("tokenize", () => {
         -- Line 4
       `);
       expect(tokens).toEqual([
+        { type: "WHITESPACE", value: "\n        " },
         { type: "COMMENT", value: "-- Line 1\n" },
+        { type: "WHITESPACE", value: "        " },
         { type: "COMMENT", value: "-- Line 2\n" },
+        { type: "WHITESPACE", value: "\n        " },
         { type: "COMMENT", value: "-- Line 4\n" },
+        { type: "WHITESPACE", value: "      " },
       ]);
     });
 
@@ -48,10 +55,12 @@ describe("tokenize", () => {
            End */
       `);
       expect(tokens).toEqual([
+        { type: "WHITESPACE", value: "\n        " },
         {
           type: "COMMENT",
           value: "/* Start\n           Middle\n           End */",
         },
+        { type: "WHITESPACE", value: "\n      " },
       ]);
     });
   });
@@ -60,7 +69,8 @@ describe("tokenize", () => {
     test("Single-quoted string", () => {
       const tokens = tokenize(`select 'Hello, world!';`);
       expect(tokens).toEqual([
-        { type: "KEYWORD", value: "SELECT" },
+        { type: "WORD", value: "select" },
+        { type: "WHITESPACE", value: " " },
         { type: "STRING", value: "'Hello, world!'" },
         { type: "PUNCT", value: ";" },
       ]);
@@ -69,9 +79,12 @@ describe("tokenize", () => {
     test("Double-quoted string", () => {
       const tokens = tokenize(`SELECT "Hello, world!" as Hello;`);
       expect(tokens).toEqual([
-        { type: "KEYWORD", value: "SELECT" },
+        { type: "WORD", value: "SELECT" },
+        { type: "WHITESPACE", value: " " },
         { type: "STRING", value: '"Hello, world!"' },
-        { type: "KEYWORD", value: "AS" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "as" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "Hello" },
         { type: "PUNCT", value: ";" },
       ]);
@@ -80,7 +93,8 @@ describe("tokenize", () => {
     test("String with an embedded quote", () => {
       const tokens = tokenize(`SELECT 'Hello ''world'''`);
       expect(tokens).toEqual([
-        { type: "KEYWORD", value: "SELECT" },
+        { type: "WORD", value: "SELECT" },
+        { type: "WHITESPACE", value: " " },
         { type: "STRING", value: "'Hello ''world'''" },
       ]);
     });
@@ -94,16 +108,26 @@ describe("tokenize", () => {
         );
       `);
       expect(tokens).toEqual([
-        { type: "KEYWORD", value: "CREATE" },
-        { type: "KEYWORD", value: "TABLE" },
+        { type: "WHITESPACE", value: "\n        " },
+        { type: "WORD", value: "CREATE" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "Table" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "Users" },
+        { type: "WHITESPACE", value: " " },
         { type: "PUNCT", value: "(" },
+        { type: "WHITESPACE", value: "\n          " },
         { type: "WORD", value: "id" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "INT" },
-        { type: "KEYWORD", value: "PRIMARY" },
-        { type: "KEYWORD", value: "KEY" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "PRIMARY" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "KEY" },
+        { type: "WHITESPACE", value: "\n        " },
         { type: "PUNCT", value: ")" },
         { type: "PUNCT", value: ";" },
+        { type: "WHITESPACE", value: "\n      " },
       ]);
     });
 
@@ -122,40 +146,61 @@ describe("tokenize", () => {
         );
       `);
       expect(tokens).toEqual([
-        { type: "KEYWORD", value: "CREATE" },
-        { type: "KEYWORD", value: "TABLE" },
+        { type: "WHITESPACE", value: "\n        " },
+        { type: "WORD", value: "CREATE" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "TABLE" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "users" },
+        { type: "WHITESPACE", value: " " },
         { type: "PUNCT", value: "(" },
+        { type: "WHITESPACE", value: "\n          " },
         {
           type: "COMMENT",
           value:
             "/* Internal identifier for the user.\n" +
             "             IDs of deleted users should not be reused. */",
         },
+        { type: "WHITESPACE", value: "\n          " },
         { type: "WORD", value: "id" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "INT" },
-        { type: "KEYWORD", value: "PRIMARY" },
-        { type: "KEYWORD", value: "KEY" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "PRIMARY" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "KEY" },
         { type: "PUNCT", value: "," },
+        { type: "WHITESPACE", value: "\n\n          " },
         { type: "COMMENT", value: "/* Username for login */" },
+        { type: "WHITESPACE", value: "\n          " },
         { type: "WORD", value: "username" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "VARCHAR" },
         { type: "PUNCT", value: "(" },
         { type: "WORD", value: "255" },
         { type: "PUNCT", value: ")" },
-        { type: "KEYWORD", value: "NOT" },
-        { type: "KEYWORD", value: "NULL" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "NOT" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "NULL" },
         { type: "PUNCT", value: "," },
+        { type: "WHITESPACE", value: "\n          \n          " },
         {
           type: "COMMENT",
           value: "/* Email used for password reminder flow */",
         },
+        { type: "WHITESPACE", value: "\n          " },
         { type: "WORD", value: "email" },
+        { type: "WHITESPACE", value: " " },
         { type: "WORD", value: "TEXT" },
-        { type: "KEYWORD", value: "NOT" },
-        { type: "KEYWORD", value: "NULL" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "NOT" },
+        { type: "WHITESPACE", value: " " },
+        { type: "WORD", value: "NULL" },
+        { type: "WHITESPACE", value: "\n        " },
         { type: "PUNCT", value: ")" },
         { type: "PUNCT", value: ";" },
+        { type: "WHITESPACE", value: "\n      " },
       ]);
     });
   });

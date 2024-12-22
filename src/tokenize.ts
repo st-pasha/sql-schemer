@@ -1,11 +1,99 @@
-type Token =
+export type Token =
   | { type: "COMMENT"; value: string }
   | { type: "PUNCT"; value: string }
   | { type: "WORD"; value: string }
-  | { type: "KEYWORD"; value: string }
   | { type: "STRING"; value: string }
-  | { type: "OTHER"; value: string };
+  | { type: "OTHER"; value: string }
+  | { type: "WHITESPACE"; value: string };
 
+export function tokenize(text: string): Array<Token> {
+  let out: Array<Token> = [];
+  let i = 0;
+
+  while (i < text.length) {
+    const i0 = i;
+    const ch1 = text.charAt(i);
+    const ch2 = text.slice(i, i + 2);
+
+    // Whitespace
+    if (/\s/.test(ch1)) {
+      while (i < text.length && /\s/.test(text[i])) i++;
+      out.push({ type: "WHITESPACE", value: text.slice(i0, i) });
+      continue;
+    }
+
+    // Single-line comment
+    if (ch2 === "--") {
+      while (i < text.length && newlineLength(text, i) == 0) i++;
+      i += newlineLength(text, i);
+      out.push({ type: "COMMENT", value: text.slice(i0, i) });
+      continue;
+    }
+
+    // Multi-line comment
+    if (ch2 === "/*") {
+      while (i < text.length) {
+        if (text.slice(i, i + 2) === "*/") {
+          i += 2;
+          break;
+        }
+        i++;
+      }
+      out.push({ type: "COMMENT", value: text.slice(i0, i) });
+      continue;
+    }
+
+    // Single- or double- quoted string
+    if (ch1 === "'" || ch1 === '"') {
+      i++;
+      while (i < text.length) {
+        if (text.charAt(i) === ch1) {
+          if (text.charAt(i + 1) === ch1) {
+            i += 2;
+            continue;
+          }
+          i++;
+          break;
+        }
+        i++;
+      }
+      out.push({ type: "STRING", value: text.slice(i0, i) });
+      continue;
+    }
+
+    // Punctuation
+    if (/[\(\)\[\]\$.,;#@]/.test(ch1)) {
+      i++;
+      out.push({ type: "PUNCT", value: ch1 });
+      continue;
+    }
+
+    // Bare-words
+    if (/\w/.test(ch1)) {
+      while (i < text.length && /\w/.test(text[i])) i++;
+      const word = text.slice(i0, i);
+      out.push({ type: "WORD", value: word });
+      continue;
+    }
+
+    // Everything else
+    i++;
+    out.push({ type: "OTHER", value: ch1 });
+  }
+  return out;
+}
+
+/// Returns the length of newline sequence found at position [pos] within
+/// the [text]. If there is no newline at that position, returns 0.
+///
+function newlineLength(text: string, pos: number): number {
+  const ch0 = text.charCodeAt(pos);
+  if (ch0 === 10) return 1;
+  if (ch0 === 13 && text.charCodeAt(pos + 1) === 10) return 2;
+  return 0;
+}
+
+/*
 const keywords = new Set([
   "ABORT",
   "ACTION",
@@ -155,79 +243,4 @@ const keywords = new Set([
   "WITH",
   "WITHOUT",
 ]);
-
-function tokenize(text: string): Array<Token> {
-  let out: Array<Token> = [];
-  let i = 0;
-
-  while (i < text.length) {
-    const i0 = i;
-    i += newlineLength(text, i0);
-    if (i > i0) continue;
-
-    // Single-line comment
-    if (text.slice(i, i + 2) === "--") {
-      while (i < text.length && newlineLength(text, i) == 0) i++;
-      i += newlineLength(text, i);
-      out.push({ type: "COMMENT", value: text.slice(i0, i) });
-    }
-    // Multi-line comment
-    else if (text.slice(i, i + 2) == "/*") {
-      while (i < text.length) {
-        if (text.slice(i, i + 2) == "*/") {
-          i += 2;
-          break;
-        }
-        i++;
-      }
-      out.push({ type: "COMMENT", value: text.slice(i0, i) });
-    } else {
-      const ch0 = text[i];
-      if (ch0 === "'" || ch0 == '"') {
-        const pos0 = i;
-        i++;
-        while (i < text.length) {
-          const ch1 = text[i];
-          i++;
-          if (ch1 === ch0) {
-            if (text[i] !== ch0) break;
-            i++;
-          }
-        }
-        out.push({ type: "STRING", value: text.slice(pos0, i) });
-      } else if (/\s/.test(ch0)) {
-        i++;
-      } else if (/[\(\).,;]/.test(ch0)) {
-        out.push({ type: "PUNCT", value: ch0 });
-        i++;
-      } else if (/\w/.test(ch0)) {
-        const pos0 = i;
-        while (i < text.length && /\w/.test(text[i])) i++;
-        const word = text.slice(pos0, i);
-        const ucWord = word.toUpperCase();
-        if (keywords.has(ucWord)) {
-          out.push({ type: "KEYWORD", value: ucWord });
-        } else {
-          out.push({ type: "WORD", value: word });
-        }
-      } else {
-        out.push({ type: "OTHER", value: ch0 });
-        i++;
-      }
-    }
-  }
-  return out;
-}
-
-
-/// Returns the length of newline sequence found at position [pos] within 
-/// the [text]. If there is no newline at that position, returns 0.
-///
-function newlineLength(text: string, pos: number): number {
-  const ch0 = text[pos];
-  if (ch0 === "\n") return 1;
-  if (ch0 === "\r" && text[pos + 1] === "\n") return 2;
-  return 0;
-}
-
-export { tokenize };
+*/
