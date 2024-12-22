@@ -1,7 +1,7 @@
 import { describe, test, expect } from "bun:test";
-import { splitIntoLines } from "../src/utils";
+import { splitIntoLines } from "../src/utils.ts";
 
-describe("splitIntoLines", () => {
+describe("splitIntoLines()", () => {
   test("Empty line", () => {
     const parsed = splitIntoLines("");
     expect(parsed).toEqual([]);

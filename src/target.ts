@@ -2,8 +2,7 @@
 import fs from "node:fs/promises";
 
 
-async function makeTarget(dest: string | object): Promise<Target> {
-  if (typeof dest === "string") {
+async function makeTarget(dest: string): Promise<Target> {
     if (dest.length === 0) {
       throw new Error("The name of the target file/directory cannot be empty");
     }
@@ -22,9 +21,6 @@ async function makeTarget(dest: string | object): Promise<Target> {
     } else {
       throw new Error(`Path ${dest} is neither a file nor a directory`);
     }
-  } else {
-    return new ObjectTarget(dest);
-  }
 }
 
 
@@ -60,15 +56,6 @@ class MultiFileTarget extends Target {
   }
 }
 
-
-class ObjectTarget extends Target {
-  private readonly container: object;
-
-  constructor(obj: object) {
-    super();
-    this.container = obj;
-  }
-}
 
 
 export { makeTarget, Target };

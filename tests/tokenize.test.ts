@@ -132,7 +132,7 @@ describe("tokenize", () => {
     });
 
     test("CREATE TABLE with multiple columns and comments", () => {
-      const tokens = tokenize(`
+      const text = `
         CREATE TABLE users (
           /* Internal identifier for the user.
              IDs of deleted users should not be reused. */
@@ -144,7 +144,9 @@ describe("tokenize", () => {
           /* Email used for password reminder flow */
           email TEXT NOT NULL
         );
-      `);
+      `;
+      const tokens = tokenize(text);
+
       expect(tokens).toEqual([
         { type: "WHITESPACE", value: "\n        " },
         { type: "WORD", value: "CREATE" },
@@ -202,6 +204,8 @@ describe("tokenize", () => {
         { type: "PUNCT", value: ";" },
         { type: "WHITESPACE", value: "\n      " },
       ]);
+      const reconstructed = tokens.map((tok) => tok.value).join('');
+      expect(reconstructed).toEqual(text);
     });
   });
 });
