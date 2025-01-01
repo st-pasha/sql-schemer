@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test";
-import { splitIntoLines } from "../src/utils.ts";
+import { splitIntoLines, unquote } from "../src/utils.ts";
 
 describe("splitIntoLines()", () => {
   test("Empty line", () => {
@@ -35,8 +35,41 @@ describe("splitIntoLines()", () => {
   test("Multiple lines", () => {
     const text = "One\nTwo\r\nThree Four\nFive";
     const parsed1 = splitIntoLines(text, true);
-    const parsed2 = splitIntoLines(text, false);    
+    const parsed2 = splitIntoLines(text, false);
     expect(parsed1).toEqual(["One\n", "Two\r\n", "Three Four\n", "Five"]);
     expect(parsed2).toEqual(["One", "Two", "Three Four", "Five"]);
+  });
+});
+
+describe("unquote()", () => {
+  test("Empty string", () => {
+    expect(unquote("''")).toBe("");
+    expect(unquote('""')).toBe("");
+  });
+
+  test("Simple string", () => {
+    expect(unquote("'Hello, world!'")).toBe("Hello, world!");
+    expect(unquote('"Hello, world!"')).toBe("Hello, world!");
+  });
+
+  test("String with escaped quotes", () => {
+    expect(unquote("'Hello, ''world''!'")).toBe("Hello, 'world'!");
+  });
+
+  test("Invalid: no quotes", () => {
+    expect(() => unquote("Hello, world!")).toThrow(
+      "Invalid quoted string: (Hello, world!)"
+    );
+  });
+
+  test("Invalid: mismatched quotes", () => {
+    expect(() => unquote("'Hello, world!\"")).toThrow(
+      "Invalid quoted string: ('Hello, world!\")"
+    );
+  });
+
+  test("Invalid: too short", () => {
+    expect(() => unquote("'")).toThrow("Invalid quoted string: (')");
+    expect(() => unquote('"')).toThrow('Invalid quoted string: (")');
   });
 });

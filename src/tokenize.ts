@@ -6,25 +6,31 @@ export type Token =
   | { type: "OTHER"; value: string }
   | { type: "WHITESPACE"; value: string };
 
+/// Tokenizes the given SQL [text] into a list of tokens, preserving comments
+/// and whitespace.
+///
+/// The original text can be reconstructed by concatenating the `value` fields
+/// of each token.
 export function tokenize(text: string): Array<Token> {
-  let out: Array<Token> = [];
+  const n = text.length;
+  const out: Array<Token> = [];
   let i = 0;
 
-  while (i < text.length) {
+  while (i < n) {
     const i0 = i;
     const ch1 = text.charAt(i);
     const ch2 = text.slice(i, i + 2);
 
     // Whitespace
     if (/\s/.test(ch1)) {
-      while (i < text.length && /\s/.test(text[i])) i++;
+      while (i < n && /\s/.test(text[i])) i++;
       out.push({ type: "WHITESPACE", value: text.slice(i0, i) });
       continue;
     }
 
     // Single-line comment
     if (ch2 === "--") {
-      while (i < text.length && newlineLength(text, i) == 0) i++;
+      while (i < n && newlineLength(text, i) == 0) i++;
       i += newlineLength(text, i);
       out.push({ type: "COMMENT", value: text.slice(i0, i) });
       continue;
@@ -32,7 +38,7 @@ export function tokenize(text: string): Array<Token> {
 
     // Multi-line comment
     if (ch2 === "/*") {
-      while (i < text.length) {
+      while (i < n) {
         if (text.slice(i, i + 2) === "*/") {
           i += 2;
           break;
@@ -46,7 +52,7 @@ export function tokenize(text: string): Array<Token> {
     // Single- or double- quoted string
     if (ch1 === "'" || ch1 === '"') {
       i++;
-      while (i < text.length) {
+      while (i < n) {
         if (text.charAt(i) === ch1) {
           if (text.charAt(i + 1) === ch1) {
             i += 2;
@@ -70,7 +76,7 @@ export function tokenize(text: string): Array<Token> {
 
     // Bare-words
     if (/\w/.test(ch1)) {
-      while (i < text.length && /\w/.test(text[i])) i++;
+      while (i < n && /\w/.test(text[i])) i++;
       const word = text.slice(i0, i);
       out.push({ type: "WORD", value: word });
       continue;
