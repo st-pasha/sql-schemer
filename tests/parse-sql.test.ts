@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { parseSql } from "../src/parse_sql.ts";
+import { parseSql } from "../src/parse-sql.ts";
 
 describe("CREATE TABLE", () => {
   test("no columns", () => {
