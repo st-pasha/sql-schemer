@@ -12,6 +12,7 @@ describe("CREATE TABLE", () => {
         constraints: [],
         options: [],
         loc: [0, 9],
+        optionsLoc: [8,8],
       },
     ]);
   });
@@ -26,6 +27,7 @@ describe("CREATE TABLE", () => {
         constraints: [],
         options: [],
         loc: [0, 15],
+        optionsLoc: [14, 14],
       },
     ]);
   });
@@ -40,6 +42,7 @@ describe("CREATE TABLE", () => {
         constraints: [],
         options: [],
         loc: [0, 12],
+        optionsLoc: [11, 11],
       },
     ]);
   });
@@ -54,6 +57,7 @@ describe("CREATE TABLE", () => {
         constraints: [],
         options: [],
         loc: [0, 9],
+        optionsLoc: [8, 8],
       },
     ]);
   });
@@ -70,15 +74,16 @@ describe("CREATE TABLE", () => {
           {
             type: "table-option",
             text: "WITHOUT ROWID",
-            loc: [9, 12],
+            loc: [8, 13],
           },
           {
             type: "table-option",
             text: "STRICT",
-            loc: [14, 15],
+            loc: [13, 15],
           },
         ],
         loc: [0, 16],
+        optionsLoc: [8, 15],
       },
     ]);
   });
@@ -115,6 +120,7 @@ describe("CREATE TABLE", () => {
         constraints: [],
         options: [],
         loc: [0, 17],
+        optionsLoc: [16, 16],
       },
     ]);
   });

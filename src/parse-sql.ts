@@ -1,5 +1,6 @@
-import { tokenize, type Token } from "./tokenize.ts";
+import { tokenize } from "./tokenize.ts";
 import {
+  type Token,
   type SqlStatement,
   type TableOption,
   type ColumnType as TypeName,
@@ -22,6 +23,8 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
     i++;
     return true;
   };
+
+  const atEof = (): boolean => i == n;
 
   const atWhitespace = (): boolean => {
     const tt = tokens[i]?.type;
@@ -248,6 +251,7 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
   function parseOption(): TableOption | null {
     const start = i;
     if (skipKeyword("WITHOUT") && skipKeyword("ROWID")) {
+      skipPunct(",");
       return {
         type: "table-option",
         text: "WITHOUT ROWID",
@@ -255,6 +259,7 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
       };
     }
     if (skipKeyword("STRICT")) {
+      skipPunct(",");
       return {
         type: "table-option",
         text: "STRICT",
@@ -270,7 +275,7 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
   /// We ignore the "CREATE TEMP TABLE" variant, because it can never be a part
   /// of a permanent schema.
   function parseCreateTable(): CreateTableStatement | null {
-    const start = i;
+    const i0 = i;
     if (skipKeyword("CREATE") && skipKeyword("TABLE")) {
       skipKeyword("IF") && skipKeyword("NOT") && skipKeyword("EXISTS");
       skipWhitespace();
@@ -291,14 +296,14 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
         if (skipPunct(")")) break;
         assert(false, "Expected column definition or constraint");
       }
-      skipWhitespace();
       const options: Array<TableOption> = [];
-      while (!atPunct(";")) {
+      const i1 = i;
+      while (!(atEof() || atPunct(";"))) {
         const option = parseOption();
         assert(option !== null, "Unknown table option");
         options.push(option);
-        skipPunct(",") && skipWhitespace();
       }
+      const i2 = i;
       skipPunct(";");
       return {
         type: "create-table-statement",
@@ -306,7 +311,8 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
         columns: columns,
         constraints: constraints,
         options: options,
-        loc: [start, i],
+        loc: [i0, i],
+        optionsLoc: [i1, i2],
       };
     }
     return null;
@@ -383,10 +389,15 @@ export function parseSql(text: string): [Array<Token>, Array<SqlStatement>] {
     }
   }
 
+  // Main body
   const statements: Array<SqlStatement> = [];
   while (i < n) {
-    const statement = parseCreateTable() || parseUnknownStatement();
-    statements.push(statement);
+    const statement = parseCreateTable();
+    if (statement !== null) {
+      statements.push(statement);
+    } else {
+      parseUnknownStatement();
+    }
   }
   return [tokens, statements];
 }

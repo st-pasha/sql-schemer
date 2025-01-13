@@ -1,7 +1,3 @@
+import { saveSchemaToFile } from "./save-schema-to-file.ts";
 
-
-function saveSqlSchema(db: any, dest: string | object) {
-
-}
-
-export { saveSqlSchema }
+export { saveSchemaToFile };

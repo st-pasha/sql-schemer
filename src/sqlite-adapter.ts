@@ -1,15 +1,16 @@
 import type { DbAdapter } from "./types.ts";
 
-/// Function that allows access to a SQLite database using either `bun:sqlite`
-/// or `sqlite3` modules, depending on the runtime.
+/**
+ * Function that allows access to a SQLite database using either `bun:sqlite`
+ * or `sqlite3` modules, depending on the runtime.
+ */
 export function sqliteAdapter(dbName: string): DbAdapter {
   const isBun = typeof Bun !== "undefined";
   const isNode = typeof process !== "undefined" && process.versions?.node;
 
   if (isBun) {
     const { Database } = require("bun:sqlite");
-    const tmp = dbName === ":memory:" || dbName === "";
-    const db = new Database(dbName, { readonly: !tmp, create: tmp });
+    const db = new Database(dbName);
 
     return {
       close: () => db.close(),

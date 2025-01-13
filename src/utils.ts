@@ -29,9 +29,11 @@ export function splitIntoLines(
   return out;
 }
 
-/// Unquote a SQL-quoted string. The string must start and end with the same
-/// quote character (either single or double quote). Any escaped quotes will
-/// be unescaped.
+/** 
+ * Unquote a SQL-quoted string. The string must start and end with the same
+ * quote character (either single or double quote). Any escaped quotes will
+ * be unescaped.
+ */
 export function unquote(text: string): string {
   const n = text.length;
   const quote = text.charCodeAt(0);

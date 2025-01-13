@@ -1,9 +1,28 @@
+export type Token = {
+  type: "COMMENT" | "PUNCT" | "WORD" | "STRING" | "OTHER" | "WHITESPACE";
+  value: string;
+};
+
+export type SqlObject = {
+  type: "table" | "index" | "view" | "trigger";
+  name: string;
+
+  // The array of tokens that were parsed from the SQL text of the object's
+  // definition. Only the portion of the array given by the `statement.loc`
+  // field should be considered to be the object's definition.
+  tokens: Array<Token>;
+
+  statement: SqlStatement;
+
+  /// The name of the file where the object was found.
+  source: string;
+};
+
 export type SqlStatement =
   | CreateTableStatement
   | CreateIndexStatement
   | CreateTriggerStatement
-  | CreateViewStatement
-  | UnknownStatement;
+  | CreateViewStatement;
 
 export type CreateTableStatement = {
   type: "create-table-statement";
@@ -12,14 +31,15 @@ export type CreateTableStatement = {
   constraints: Array<TableConstraint>;
   options: Array<TableOption>;
   loc: Location;
+  optionsLoc: Location;
 };
 
 export type CreateIndexStatement = {
   type: "create-index-statement";
+  name: string;
   unique: boolean;
   ifNotExists: boolean;
   schemaName: string | null;
-  indexName: string;
   tableName: string;
   columns: Array<IndexedColumn>; // not empty
   where: Expr | null;
@@ -28,18 +48,18 @@ export type CreateIndexStatement = {
 
 export type CreateTriggerStatement = {
   type: "create-trigger-statement";
+  name: string;
   ifNotExists: boolean;
   schemaName: string | null;
-  triggerName: string;
   tokens: Array<string>;
   loc: Location;
 };
 
 export type CreateViewStatement = {
   type: "create-view-statement";
+  name: string;
   ifNotExists: boolean;
   schemaName: string | null;
-  viewName: string;
   columns: Array<string>;
   selectStatement: Array<string>;
   loc: Location;
@@ -78,7 +98,8 @@ export type ColumnType = {
 export type ColumnConstraint =
   | ColumnConstraintPrimaryKey
   | ColumnConstraintNotNull
-  | ColumnConstraintUnique; //  | ColumnConstraintCheck | ColumnConstraintDefault | ColumnConstraintCollate | ColumnConstraintForeignKey;
+  | ColumnConstraintUnique;
+//  | ColumnConstraintCheck | ColumnConstraintDefault | ColumnConstraintCollate | ColumnConstraintForeignKey;
 
 export type ColumnConstraintPrimaryKey = {
   type: "column-constraint-primary-key";
@@ -179,3 +200,30 @@ export type Expr = {
   tokens: Array<string>; // whitespace/comments are removed
   loc: Location;
 };
+
+export type DbAdapter = {
+  close: () => void;
+  run: (sql: string) => void;
+  selectAll: (sql: string) => any[];
+};
+
+export type SchemaEdit =
+  | {
+      type: "add";
+      newObject: SqlObject;
+    }
+  | {
+      type: "modify";
+      newObject: SqlObject;
+      oldObject: SqlObject;
+    }
+  | {
+      type: "remove";
+      oldObject: SqlObject;
+    };
+
+export function statementTypeToSqlType(
+  type: SqlStatement["type"]
+): SqlObject["type"] {
+  return type.slice(7, -10) as SqlObject["type"];
+}
