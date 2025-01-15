@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { saveSchemaToFile } from "../src/save-schema-to-file.ts";
+import { saveSchemaToFile } from "../src/index.ts";
 import { sqliteAdapter } from "../src/sqlite-adapter.ts";
 
 const testDbPath = path.join(__dirname, "test-db.sqlite");
@@ -16,35 +16,42 @@ describe("saveSchemaToFile", () => {
         CREATE TABLE users (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL
-        );
+        )
     `);
     createTestFile(`
         -- this is a comment
         CREATE TABLE users (
             id     INTEGER PRIMARY KEY,
-            name   TEXT NOT NULL
+            name   TEXT not null
         );
     `);
-    debugger;
     const result = saveSchemaToFile(testDbPath, testSqlFilePath);
     expect(result).toBe(false);
   });
 
-  test.skip("should return true and update the file if there are schema differences", () => {
-    const dbAdapter = sqliteAdapter(testDbPath);
-    dbAdapter.run(`
-            CREATE TABLE posts (
-                id INTEGER PRIMARY KEY,
-                title TEXT NOT NULL
-            );
-        `);
-    dbAdapter.close();
+  test("should return true and update the file if there are schema differences", () => {
+    createTestDb(`
+      CREATE TABLE posts (
+        id INTEGER PRIMARY KEY,
+        title TEXT NOT NULL
+      );
+    `);
+    createTestFile(`
+      -- all important posts are stored here
+      create table posts(id integer, title text);
+    `);
 
+    debugger;
     const result = saveSchemaToFile(testDbPath, testSqlFilePath);
     expect(result).toBe(true);
 
     const updatedSchema = fs.readFileSync(testSqlFilePath, "utf-8");
-    expect(updatedSchema).toContain("CREATE TABLE posts");
+    expect(updatedSchema).toBe(
+      "CREATE TABLE posts (\n" +
+      "        id INTEGER PRIMARY KEY,\n" +
+      "        title TEXT NOT NULL\n" +
+      "      );\n    "
+    );
   });
 });
 

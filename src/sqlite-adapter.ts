@@ -1,4 +1,4 @@
-import type { DbAdapter } from "./types.ts";
+import { type DbAdapter } from "./types.ts";
 
 /**
  * Function that allows access to a SQLite database using either `bun:sqlite`
